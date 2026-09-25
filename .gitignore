@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.duckdb
+*.duckdb.wal
+
+# Data is re-downloadable, except the live snapshots: those are collected by
+# the GitHub Actions poller and can't be recreated, so they are committed.
+data/*
+!data/raw/
+data/raw/*
+!data/raw/departures/
