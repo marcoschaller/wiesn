@@ -7,6 +7,11 @@ on:
 
 permissions:
   contents: write             # commit snapshots back to the repo
+  actions: write              # lets the workflow disable itself after the cutoff
+
+env:
+  # Stop collecting after Oct 9 (end of day, Munich time). Re-enable in the Actions tab.
+  STOP_AFTER: "2026-10-10T00:00:00+02:00"
 
 concurrency:
   group: poll-departures      # never run two pollers at once (avoids push races)
@@ -17,14 +22,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Check collection window
+        id: window
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(date -u +%s)" -ge "$(date -u -d "$STOP_AFTER" +%s)" ]; then
+            echo "Past $STOP_AFTER - disabling this workflow."
+            gh workflow disable "${{ github.workflow }}" -R "${{ github.repository }}"
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.window.outputs.active == 'true'
 
       - uses: astral-sh/setup-uv@v6
+        if: steps.window.outputs.active == 'true'
 
       - name: Poll MVG departures
+        if: steps.window.outputs.active == 'true'
         run: uv run python scripts/poll_departures.py
 
       - name: Commit snapshot
+        if: steps.window.outputs.active == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
