@@ -10,8 +10,8 @@ permissions:
   actions: write              # lets the workflow disable itself after the cutoff
 
 env:
-  # Stop collecting after Oct 9 (end of day, Munich time). Re-enable in the Actions tab.
-  STOP_AFTER: "2026-10-10T00:00:00+02:00"
+  # Stop collecting after Oct 18 (end of day, Munich time). Re-enable in the Actions tab.
+  STOP_AFTER: "2026-10-19T00:00:00+02:00"
 
 concurrency:
   group: poll-departures      # never run two pollers at once (avoids push races)
